@@ -1,0 +1,17 @@
+{
+  "name": "sw",
+  "version": "1.0.0",
+  "description": "This is a cli tool for searching english word from www.shanbay.com!",
+  "main": "index.js",
+  "bin": {
+    "sw": "./bin/sw.js"
+  },
+  "scripts": {
+    "test": "npm test"
+  },
+  "author": "clearbug",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0"
+  }
+}
