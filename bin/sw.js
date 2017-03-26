@@ -37,14 +37,46 @@ if (!config.username && !config.password) {
     console.log('2. sw -p <your password>');
     process.exit();
 } else if(!config.username && config.password) {
-    console.log('您还没有设置扇贝账号用户名，设置方法：sw -u <your username>');
+    console.log('您还没有设置扇贝账号的用户名，设置方法：sw -u <your username>');
     process.exit();
 } else if(config.username && !config.password) {
-    console.log('您还没有设置扇贝账号密码，设置方法：sw -p <your password>');
+    console.log('您还没有设置扇贝账号的密码，设置方法：sw -p <your password>');
     process.exit();
 }
 
 var content = args[0];
+
+var cookiesObj = JSON.parse(fs.readFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json')));
+if (cbUtil.checkCookieValid(cookiesObj)) {
+    var searchReqOptions = shanbayApi.searchReqOptions;
+    searchReqOptions.path += content;
+    cbUtil.request(searchReqOptions)
+        .then(res => {
+            var data = res.body.data;
+            var cnDefinitions = data.definitions.cn;
+            console.log(`单词 [${content}] 含义如下：\r\n`);
+            for (var i = 0; i < cnDefinitions.length; i++) {
+                console.log(`[${i + 1}] ${cnDefinitions[i].pos} ${cnDefinitions[i].defn}`);
+            }
+
+            var learnReqOptions = shanbayApi.learnReqOptions;
+            var learnReqData = JSON.stringify({
+                id: data.id,
+                content_type: 'vocabulary'
+            });
+            learnReqOptions.headers['Content-Length'] = learnReqData.length;
+            var cookiesObj = JSON.parse(fs.readFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json')));
+            learnReqOptions.headers.Cookie += cbUtil.getCookieStr(cookiesObj);
+            return cbUtil.request(learnReqOptions, learnReqData);
+        })
+        .then(res => {
+            console.log(`\r\n单词 [${content}] 已成功添加到单词学习库。`);
+            process.exit();
+        })
+        .catch(error => {
+            console.log(error);
+        });
+}
 
 var loginReqOptions = shanbayApi.loginReqOptions;
 var loginInfo = {
@@ -53,88 +85,60 @@ var loginInfo = {
 };
 var loginPutData = JSON.stringify(loginInfo);
 loginReqOptions.headers['Content-Length'] = loginPutData.length;
+cbUtil.request(loginReqOptions, loginPutData)
+    .then(res => {
+        var cookiesObj = cbUtil.parseSetCookie(res.headers['set-cookie']);
+        fs.writeFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json'), JSON.stringify(cookiesObj));
+        var homepageReqOptions = shanbayApi.homepageReqOptions;
+        homepageReqOptions.headers.Cookie += cbUtil.getCookieStr(cookiesObj);
+        return new Promise((resolve, reject) => {
+            var homepageReq = http.request(homepageReqOptions, res => {
+                res.on('data', data => {
 
-var homepageReqOptions = shanbayApi.homepageReqOptions;
-
-var searchReqOptions = shanbayApi.searchReqOptions;
-searchReqOptions.path += content;
-
-var learnReqOptions = shanbayApi.learnReqOptions;
-
-var loginReq = http.request(loginReqOptions, (res) => {
-    res.on('data', (data) => {
-        data = JSON.parse(data);
-        if (data.status_code === 0 && data.msg === 'SUCCESS') {
-            var cookiesObj = cbUtil.parseSetCookie(res.headers['set-cookie']);
-            //console.dir(cookiesObj);
-            homepageReqOptions.headers.Cookie += 'csrftoken=' + cookiesObj.csrftoken.value + ';'; 
-            homepageReqOptions.headers.Cookie += 'auth_token=' + cookiesObj.auth_token.value + ';'; 
-            homepageReqOptions.headers.Cookie += 'sessionid=' + cookiesObj.sessionid.value + ';'; 
-            //console.dir(homepageReqOptions);
-
-            var homePageReq = http.request(homepageReqOptions, (res) => {
-                res.on('data', (data) => {
-                    
                 });
                 res.on('end', () => {
-                    var cookiesObj = cbUtil.parseSetCookie(res.headers['set-cookie']);
-                    learnReqOptions.headers.Cookie += homepageReqOptions.headers.Cookie + 'userid=' + cookiesObj.userid.value + ';';
-                    var searchReq = http.request(searchReqOptions, (res) => {
-                        res.on('data', (data) => {
-                            data = JSON.parse(data);
-                            if (data.status_code === 0 && data.msg === 'SUCCESS') {
-                                data = data.data;
-                                var id = data.id;
-                                var cnDefinitions = data.definitions.cn;
-                                console.log(`单词 [${content}] 含义如下：\r\n`);
-                                for (var i = 0; i < cnDefinitions.length; i++) {
-                                    console.log(`[${i + 1}] ${cnDefinitions[i].pos} ${cnDefinitions[i].defn}`);
-                                }
-
-                                var learnReqData = JSON.stringify({
-                                    id: id,
-                                    content_type: 'vocabulary'
-                                });
-                                learnReqOptions.headers['Content-Length'] = learnReqData.length;
-                                var learnReq = http.request(learnReqOptions, (res) => {
-                                    res.on('data', (data) => {
-                                        data = JSON.parse(data);
-                                        if (data.status_code === 0 && data.msg === 'SUCCESS') {
-                                            console.log(`\r\n单词 [${content}] 已成功添加到单词学习库。`)
-                                        }
-                                    });
-                                    res.on('end', () => {
-
-                                    });
-                                });
-                                learnReq.write(learnReqData);
-                                learnReq.end();
-                            } else {
-                                console.log(`[查询结果] ${data.msg}`);
-                            }
-                        });
-                        res.on('end', () => {
-
-                        });
-                    });
-                    searchReq.end();
+                    var cookiesObj = JSON.parse(fs.readFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json')));
+                    var cookiesObj2 = cbUtil.parseSetCookie(res.headers['set-cookie']);
+                    for (key in cookiesObj2) {
+                        cookiesObj[key] = cookiesObj2[key];
+                    }
+                    fs.writeFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json'), JSON.stringify(cookiesObj));
+                    resolve(cookiesObj);
                 });
             });
-
-            homePageReq.on('error', (e) => {
+            homepageReq.on('error', e => {
                 console.log(`problem with request: ${e.message}`);
+                reject(e);
             });
-            homePageReq.end();
+            homepageReq.end();
+        });
+    })
+    .then(cookiesObj => {
+        var searchReqOptions = shanbayApi.searchReqOptions;
+        searchReqOptions.path += content;
+        return cbUtil.request(searchReqOptions);
+    })
+    .then(res => {
+        var data = res.body.data;
+        var cnDefinitions = data.definitions.cn;
+        console.log(`单词 [${content}] 含义如下：\r\n`);
+        for (var i = 0; i < cnDefinitions.length; i++) {
+            console.log(`[${i + 1}] ${cnDefinitions[i].pos} ${cnDefinitions[i].defn}`);
         }
+
+        var learnReqOptions = shanbayApi.learnReqOptions;
+        var learnReqData = JSON.stringify({
+            id: data.id,
+            content_type: 'vocabulary'
+        });
+        learnReqOptions.headers['Content-Length'] = learnReqData.length;
+        var cookiesObj = JSON.parse(fs.readFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json')));
+        learnReqOptions.headers.Cookie += cbUtil.getCookieStr(cookiesObj);
+        return cbUtil.request(learnReqOptions, learnReqData);
+    })
+    .then(res => {
+        console.log(`\r\n单词 [${content}] 已成功添加到单词学习库。`);
+    })
+    .catch(error => {
+        console.log(error);
     });
-    res.on('end', () => {
-
-    });
-});
-
-loginReq.on('error', (e) => {
-    console.log(`problem with request: ${e.message}`);
-});
-
-loginReq.write(loginPutData);
-loginReq.end();
