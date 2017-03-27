@@ -82,9 +82,19 @@ if (cbUtil.checkCookieValid(cookiesObj)) {
         })
         .catch(error => {
             if (program.debug) {
-                cbLog.info(error);
+                cbLog.error(JSON.stringify(error));
             } else {
-                console.log(error);
+                if (typeof(error) === 'object') {
+                    if (error.msg) {
+                        console.log(error.msg);
+                    } else if(error.message) {
+                        console.log(error.message);
+                    } else {
+                        console.log(JSON.stringify(error));
+                    }
+                } else {
+                    console.log(JSON.stringify(error));
+                }
             }
         });
 } else {
@@ -147,9 +157,19 @@ if (cbUtil.checkCookieValid(cookiesObj)) {
         })
         .catch(error => {
             if (program.debug) {
-                cbLog.info(error);
+                cbLog.error(JSON.stringify(error));
             } else {
-                console.log(error);
+                if (typeof(error) === 'object') {
+                    if (error.msg) {
+                        console.log(error.msg);
+                    } else if(error.message) {
+                        console.log(error.message);
+                    } else {
+                        console.log(JSON.stringify(error));
+                    }
+                } else {
+                    console.log(JSON.stringify(error));
+                }
             }
         });
 }
