@@ -6,6 +6,7 @@ const path = require('path');
 const program = require('commander');
 
 const cbUtil = require('../lib/cbUtil');
+const cbLog = require('../lib/cbLog');
 
 const config = require('../config/config.json');
 const shanbayApi = require('../config/shanbay_api.json');
@@ -15,6 +16,7 @@ program
     .usage('<english-word>')
     .option('-u, --username <your username>', 'Set your username of shanbay.com')
     .option('-p, --password <your password>', 'Set your password of shanbay.com')
+    .option('-d, --debug', 'Use debug mode')
     .parse(process.argv);
 
 var args = program.args;
@@ -46,8 +48,14 @@ if (!config.username && !config.password) {
 
 var content = args[0];
 
+if (program.debug) {
+    cbLog.info('您启动了 [Debug] 模式...');
+}
 var cookiesObj = JSON.parse(fs.readFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json')));
 if (cbUtil.checkCookieValid(cookiesObj)) {
+    if (program.debug) {
+        cbLog.info('缓存 Cookie 有效性校验通过.');
+    }
     var searchReqOptions = shanbayApi.searchReqOptions;
     searchReqOptions.path += content;
     cbUtil.request(searchReqOptions)
@@ -73,9 +81,17 @@ if (cbUtil.checkCookieValid(cookiesObj)) {
             console.log(`\r\n单词 [${content}] 已成功添加到单词学习库。`);
         })
         .catch(error => {
-            console.log(error);
+            if (program.debug) {
+                cbLog.info(error);
+            } else {
+                console.log(error);
+            }
         });
 } else {
+    if (program.debug) {
+        cbLog.info('缓存 Cookie 有效性校验未通过.');
+        cbLog.info('重新登录获取 Cookie.');
+    }
     var loginReqOptions = shanbayApi.loginReqOptions;
     var loginInfo = {
         username: config.username,
@@ -85,6 +101,9 @@ if (cbUtil.checkCookieValid(cookiesObj)) {
     loginReqOptions.headers['Content-Length'] = loginPutData.length;
     cbUtil.request(loginReqOptions, loginPutData)
         .then(res => {
+            if (program.debug) {
+                cbLog.info('登录成功.');
+            }
             var cookiesObj = cbUtil.parseSetCookie(res.headers['set-cookie']);
             fs.writeFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json'), JSON.stringify(cookiesObj));
             var homepageReqOptions = shanbayApi.homepageReqOptions;
@@ -98,6 +117,9 @@ if (cbUtil.checkCookieValid(cookiesObj)) {
                 cookiesObj[key] = cookiesObj2[key];
             }
             fs.writeFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json'), JSON.stringify(cookiesObj));
+            if (program.debug) {
+                cbLog.info('重新缓存 Cookie 成功.');
+            }
             var searchReqOptions = shanbayApi.searchReqOptions;
             searchReqOptions.path += content;
             return cbUtil.request(searchReqOptions);
@@ -124,6 +146,10 @@ if (cbUtil.checkCookieValid(cookiesObj)) {
             console.log(`\r\n单词 [${content}] 已成功添加到单词学习库。`);
         })
         .catch(error => {
-            console.log(error);
+            if (program.debug) {
+                cbLog.info(error);
+            } else {
+                console.log(error);
+            }
         });
 }
