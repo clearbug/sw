@@ -10,10 +10,13 @@ const cbLog = require('../lib/cbLog');
 
 const config = require('../config/config.json');
 const shanbayApi = require('../config/shanbay_api.json');
+const baiduApi = require('../config/baidu_api.json');
 
 program
     .version(require('../package.json').version)
     .usage('<english-word>')
+    .option('-e, --baiduenglish <english word>', 'Use Baidu Fanyi search english')
+    .option('-z, --baiduzhongwen <han zi>', 'Use Baidu Fanyi search zhongwen')
     .option('-u, --username <your username>', 'Set your username of shanbay.com')
     .option('-p, --password <your password>', 'Set your password of shanbay.com')
     .option('-d, --debug', 'Use debug mode')
@@ -52,7 +55,40 @@ if (program.debug) {
     cbLog.info('您启动了 [Debug] 模式...');
 }
 var cookiesObj = JSON.parse(fs.readFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json')));
-if (cbUtil.checkCookieValid(cookiesObj)) {
+
+if (program.baiduenglish) {
+    var postData = 'from=en&to=zh&transtype=realtime&simple_means_flag=3&query=';
+    postData += program.baiduenglish;
+    var searchReqOptions = baiduApi.searchReqOptions;
+    searchReqOptions.headers['Content-Length'] = postData.length;
+    cbUtil.request(searchReqOptions, postData)
+        .then(res => {
+            var word_means = res.body.dict_result.simple_means.word_means;
+            console.log(`单词 [${program.baiduenglish}] 含义如下：\r\n`);
+            for (var i = 0; i < word_means.length; i++) {
+                console.log(`[${i + 1}] ${word_means[i]}`);
+            }
+        })
+        .catch(error => {
+            console.dir(error);
+        });
+} else if(program.baiduzhongwen) {
+    var postData = 'from=zh&to=en&transtype=realtime&simple_means_flag=3&query=';
+    postData += encodeURI(program.baiduzhongwen);
+    var searchReqOptions = baiduApi.searchReqOptions;
+    searchReqOptions.headers['Content-Length'] = postData.length;
+    cbUtil.request(searchReqOptions, postData)
+        .then(res => {
+            var word_means = res.body.dict_result.simple_means.word_means;
+            console.log(`[${program.baiduzhongwen}] 英文解释如下：\r\n`);
+            for (var i = 0; i < word_means.length; i++) {
+                console.log(`[${i + 1}] ${word_means[i]}`);
+            }
+        })
+        .catch(error => {
+            console.dir(error);
+        });
+} else if (cbUtil.checkCookieValid(cookiesObj)) {
     if (program.debug) {
         cbLog.info('缓存 Cookie 有效性校验通过.');
     }
