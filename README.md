@@ -1,12 +1,13 @@
 ## Installation
 npm install --global cb_sw
+
 ## Usage
 1. 初次使用，需要设置个人扇贝网账户的用户名和密码：
-- sw -u <your username>
-- sw -p <your password>
+- 设置用户名：sw -u <your username>
+- 设置密码：sw -p <your password>
 
 2. 设置过用户名和密码之后就可以进行单词查询了：
-- sw courage
+- 扇贝网查询单词：sw courage
 
 对于第一次单词查询需要使用用户名和密码去登录扇贝网，以便在查询完单词之后实时把该单词添加到个人每日单词学习库中。
 今天发现扇贝网登录时需要输入验证码了，没办法，在下不懂图片验证码的自动识别，所以只能麻烦使用者自己在浏览器打开图片验证码的 URL，并按照要求输入验证码完成登录。每次登录后，本工具将会自动缓存用户 Cookie，十天之内不需要重复登录。
