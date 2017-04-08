@@ -15,6 +15,7 @@ const baiduApi = require('../config/baidu_api.json');
 program
     .version(require('../package.json').version)
     .usage('<english-word>')
+    .option('-i, --personalinfo', 'Show shanbay personal info')
     .option('-e, --baiduenglish <english word>', 'Use Baidu Fanyi search english')
     .option('-z, --baiduzhongwen <han zi>', 'Use Baidu Fanyi search zhongwen')
     .option('-u, --username <your username>', 'Set your username of shanbay.com')
@@ -56,7 +57,12 @@ if (program.debug) {
 }
 var cookiesObj = JSON.parse(fs.readFileSync(path.join(path.parse(__dirname).dir, 'storage/cookie.json')));
 
-if (program.baiduenglish) {
+if (program.personalinfo) {
+    var personalinfo = JSON.parse(fs.readFileSync(path.join(path.parse(__dirname).dir, 'config/config.json')));
+    console.log('您的扇贝账户个人信息：');
+    console.log(`1. 用户名：${personalinfo.username}`);
+    console.log(`2. 密  码：${personalinfo.password}`);
+} else if (program.baiduenglish) {
     var postData = 'from=en&to=zh&transtype=realtime&simple_means_flag=3&query=';
     postData += program.baiduenglish;
     var searchReqOptions = baiduApi.searchReqOptions;
