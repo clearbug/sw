@@ -1,5 +1,5 @@
 {
-  "name": "sw",
+  "name": "cb_sw",
   "version": "1.0.0",
   "description": "This is a cli tool for searching english word from www.shanbay.com!",
   "main": "index.js",
@@ -14,5 +14,9 @@
   "dependencies": {
     "colors": "^1.1.2",
     "commander": "^2.9.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clearbug/sw.git"
+  },
 }
