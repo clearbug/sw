@@ -1,3 +1,6 @@
-const colors = require('colors');
+const cbUtil = require('./lib/cbUtil');
 
-console.log(colors.red('hello'));
+cbUtil.readCaptcha()
+    .then(line => {
+        console.log(`您输入的验证码是：${line}`);
+    });
