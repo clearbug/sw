@@ -15,8 +15,8 @@ npm install --global cb_sw
 
 ## Usage
 1. 初次使用，需要设置个人扇贝网账户的用户名和密码：
-- 设置用户名：sw -u <your username>
-- 设置密码：sw -p <your password>
+- 设置用户名：`sw -u <your username>`
+- 设置密码：`sw -p <your password>`
 
 2. 设置过用户名和密码之后就可以进行单词查询了：
 - 扇贝网查询单词：sw courage
