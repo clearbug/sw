@@ -1,6 +1,6 @@
 {
   "name": "cb_sw",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "This is a cli tool for searching english word from www.shanbay.com!",
   "main": "index.js",
   "bin": {
@@ -13,7 +13,8 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.1.2",
-    "commander": "^2.9.0"
+    "commander": "^2.9.0",
+    "copy-paste": "^1.3.0"
   },
   "repository": {
     "type": "git",

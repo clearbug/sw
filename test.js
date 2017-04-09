@@ -1,6 +1,5 @@
-const cbUtil = require('./lib/cbUtil');
+const ncp = require('copy-paste');
 
-cbUtil.readCaptcha()
-    .then(line => {
-        console.log(`您输入的验证码是：${line}`);
-    });
+ncp.copy('helo', () => {
+    console.log('复制完成.');
+});

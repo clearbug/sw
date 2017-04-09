@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
-const child_process = require('child_process');
 
 const program = require('commander');
+const ncp = require('copy-paste');
 
 const config = require('../config/config.json');
 
@@ -137,11 +137,18 @@ if (program.personalinfo) { // 查询个人扇贝账户信息
     };
     cbUtil.request(shanbayApi.captchaOptions)
         .then(res => {
+            loginInfo.key += res.body.data.key;
             console.log('1. 扇贝网现在登录需要输入图片验证码了，本工具并不能完全自动化登录了，蛋疼。。。现在需要您手动在浏览器中浏览器图片验证码上的验证码并输入该验证码，本工具已对登录用户的 Cookie 做缓存，所以您登录一次可以保证十天之内不再需要重复登录！');
             console.log(`2. 验证码图片地址：${res.body.data.image_url}`);
-            child_process.spawn('clip').stdin.end(res.body.data.image_url);
-            console.log('3. 验证码图片地址已复制到粘贴板，您可打开浏览器直接输入浏览！')
-            loginInfo.key += res.body.data.key;
+            return new Promise((resolve, reject) => {
+                ncp.copy(res.body.data.image_url, () => {
+                    console.log('3. 验证码图片地址已复制到粘贴板，您可打开浏览器直接输入浏览！');
+                    resolve('success');
+                });
+            });
+            
+        })
+        .then(res => {
             return cbUtil.readCaptcha();
         })
         .then(captcha => {
