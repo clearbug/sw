@@ -211,5 +211,6 @@ if (program.personalinfo) { // 查询个人扇贝账户信息
         })
         .catch(error => {
             cbUtil.dealError(error, program.debug);
+            process.exit(); // 不知道为啥这里程序不能自动停止了，尴尬，只能手动让它停下来了！
         });
 }
