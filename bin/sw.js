@@ -68,11 +68,16 @@ if (program.personalinfo) { // 查询个人扇贝账户信息
     searchReqOptions.headers['Content-Length'] = postData.length;
     cbUtil.request(searchReqOptions, postData)
         .then(res => {
-            var word_means = res.body.dict_result.simple_means.word_means;
-            console.log(`单词 [${program.baiduenglish}] 含义如下：\r\n`);
-            for (var i = 0; i < word_means.length; i++) {
-                console.log(`[${i + 1}] ${word_means[i]}`);
+            if (res.body.dict_result && res.body.dict_result.simple_means) {
+                var word_means = res.body.dict_result.simple_means.word_means;
+                console.log(`单词 [${program.baiduenglish}] 含义如下：\r\n`);
+                for (var i = 0; i < word_means.length; i++) {
+                    console.log(`[${i + 1}] ${word_means[i]}`);
+                }
+            } else {
+                console.log(`[百度翻译] 未查找到单词：${program.baiduenglish}`);
             }
+            
         })
         .catch(error => {
             cbUtil.dealError(error, program.debug);
