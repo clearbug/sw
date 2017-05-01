@@ -1,6 +1,6 @@
 {
   "name": "cb_sw",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "This is a cli tool for searching english word from www.shanbay.com!",
   "main": "index.js",
   "bin": {
